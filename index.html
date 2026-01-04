@@ -110,6 +110,20 @@
             letter-spacing: 2px;
             color: #ff2d55;
         }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .lang-btn {
+            padding: 6px 10px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 15px;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+        }
         .mode-badge {
             padding: 6px 12px;
             background: rgba(255,45,85,0.2);
@@ -395,6 +409,48 @@
             border-radius: 12px;
         }
 
+        /* 语言面板 */
+        .lang-panel {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.98);
+            z-index: 350;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 25px;
+        }
+        .lang-panel.open { display: flex; }
+        .lang-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: #ff2d55;
+        }
+        .lang-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 280px;
+        }
+        .lang-option {
+            padding: 18px 25px;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1.1rem;
+        }
+        .lang-option:hover, .lang-option.active {
+            background: rgba(255,45,85,0.15);
+            border-color: #ff2d55;
+        }
+        .lang-option .flag { font-size: 1.5rem; margin-right: 10px; }
+
         /* 分贝条 */
         .db-meter {
             position: fixed;
@@ -445,7 +501,10 @@
     <div class="game-container">
         <div class="status-bar">
             <span class="logo">MIDNIGHT SPARK</span>
-            <div class="mode-badge" id="modeBadge">狂野</div>
+            <div class="header-right">
+                <div class="lang-btn" id="langBtn">🌐 中文</div>
+                <div class="mode-badge" id="modeBadge">狂野</div>
+            </div>
         </div>
 
         <div class="card-area">
@@ -457,7 +516,7 @@
                             <path d="M40 25c-6 0-12 5-12 12 0 10 12 18 12 18s12-8 12-18c0-7-6-12-12-12z"/>
                         </svg>
                     </div>
-                    <div class="card-back-text">点击揭示</div>
+                    <div class="card-back-text" id="tapToReveal">点击揭示</div>
                 </div>
                 <div class="card-face card-front" id="cardFront"></div>
             </div>
@@ -470,289 +529,306 @@
     </div>
 
     <div class="settings-panel" id="settingsPanel">
-        <button class="settings-close" id="settingsClose">x</button>
-        <h2 class="settings-title">选择你们的尺度</h2>
+        <button class="settings-close" id="settingsClose">×</button>
+        <h2 class="settings-title" id="settingsTitle">选择你们的尺度</h2>
         <div class="mode-cards" id="modeCards">
             <div class="mode-card" data-mode="gentle">
-                <div class="mode-name">温柔</div>
-                <div class="mode-desc">亲吻、抚摸、轻咬<br>适合慢慢升温</div>
+                <div class="mode-name" data-i18n="mode_gentle">温柔</div>
+                <div class="mode-desc" data-i18n="mode_gentle_desc">亲吻、抚摸、轻咬<br>适合慢慢升温</div>
             </div>
             <div class="mode-card" data-mode="passionate">
-                <div class="mode-name">激情</div>
-                <div class="mode-desc">深入探索、多���势<br>常规但不无聊</div>
+                <div class="mode-name" data-i18n="mode_passionate">激情</div>
+                <div class="mode-desc" data-i18n="mode_passionate_desc">深入探索、多姿势<br>常规但不无聊</div>
             </div>
             <div class="mode-card active" data-mode="wild">
-                <div class="mode-name">狂野</div>
-                <div class="mode-desc">蒙眼、束缚、控制<br>打开新世界</div>
+                <div class="mode-name" data-i18n="mode_wild">狂野</div>
+                <div class="mode-desc" data-i18n="mode_wild_desc">蒙眼、束缚、控制<br>打开新世界</div>
             </div>
             <div class="mode-card" data-mode="extreme">
-                <div class="mode-name">极限SM</div>
-                <div class="mode-desc">主奴、惩罚、羞耻<br>完全臣服或支配</div>
+                <div class="mode-name" data-i18n="mode_extreme">极限SM</div>
+                <div class="mode-desc" data-i18n="mode_extreme_desc">主奴、惩罚、羞耻<br>完全臣服或支配</div>
             </div>
         </div>
-        <div class="mode-warning">请确保双方完全同意，随时可以喊停</div>
+        <div class="mode-warning" id="modeWarning">请确保双方完全同意，随时可以喊停</div>
+    </div>
+
+    <div class="lang-panel" id="langPanel">
+        <h2 class="lang-title">🌐 Select Language</h2>
+        <div class="lang-options">
+            <div class="lang-option" data-lang="zh"><span class="flag">🇨🇳</span>中文</div>
+            <div class="lang-option" data-lang="en"><span class="flag">🇺🇸</span>English</div>
+            <div class="lang-option" data-lang="vi"><span class="flag">🇻🇳</span>Tiếng Việt</div>
+        </div>
     </div>
 
 <script>
+// ==================== 多语言系统 ====================
+const i18n = {
+    zh: {
+        tapToReveal: '点击揭示',
+        skip: '跳过',
+        next: '下一个',
+        settingsTitle: '选择你们的尺度',
+        modeWarning: '请确保双方完全同意，随时可以喊停',
+        seconds: '秒',
+        done: '完成',
+        clickNext: '完成后点击下一个',
+        langName: '中文',
+        mode_gentle: '温柔',
+        mode_passionate: '激情',
+        mode_wild: '狂野',
+        mode_extreme: '极限SM',
+        mode_gentle_desc: '亲吻、抚摸、轻咬<br>适合慢慢升温',
+        mode_passionate_desc: '深入探索、多姿势<br>常规但不无聊',
+        mode_wild_desc: '蒙眼、束缚、控制<br>打开新世界',
+        mode_extreme_desc: '主奴、惩罚、羞耻<br>完全臣服或支配',
+        level_1: '温柔',
+        level_2: '挑逗',
+        level_3: '激情',
+        level_4: '狂野',
+        level_5: '极限',
+    },
+    en: {
+        tapToReveal: 'Tap to Reveal',
+        skip: 'Skip',
+        next: 'Next',
+        settingsTitle: 'Choose Your Intensity',
+        modeWarning: 'Ensure mutual consent. You can stop anytime.',
+        seconds: 'sec',
+        done: 'Done',
+        clickNext: 'Tap Next when done',
+        langName: 'EN',
+        mode_gentle: 'Gentle',
+        mode_passionate: 'Passionate',
+        mode_wild: 'Wild',
+        mode_extreme: 'Extreme',
+        mode_gentle_desc: 'Kisses, touches, nibbles<br>Perfect for warming up',
+        mode_passionate_desc: 'Deep exploration<br>Classic but exciting',
+        mode_wild_desc: 'Blindfolds, restraints<br>Open new doors',
+        mode_extreme_desc: 'Power exchange<br>Full submission or control',
+        level_1: 'Gentle',
+        level_2: 'Tease',
+        level_3: 'Passion',
+        level_4: 'Wild',
+        level_5: 'Extreme',
+    },
+    vi: {
+        tapToReveal: 'Chạm để mở',
+        skip: 'Bỏ qua',
+        next: 'Tiếp theo',
+        settingsTitle: 'Chọn mức độ',
+        modeWarning: 'Đảm bảo cả hai đồng ý. Có thể dừng bất cứ lúc nào.',
+        seconds: 'giây',
+        done: 'Xong',
+        clickNext: 'Nhấn Tiếp khi xong',
+        langName: 'VI',
+        mode_gentle: 'Nhẹ nhàng',
+        mode_passionate: 'Đam mê',
+        mode_wild: 'Hoang dại',
+        mode_extreme: 'Cực độ',
+        mode_gentle_desc: 'Hôn, vuốt ve, cắn nhẹ<br>Khởi động hoàn hảo',
+        mode_passionate_desc: 'Khám phá sâu<br>Cổ điển nhưng thú vị',
+        mode_wild_desc: 'Bịt mắt, trói buộc<br>Mở cánh cửa mới',
+        mode_extreme_desc: 'Trao đổi quyền lực<br>Hoàn toàn phục tùng',
+        level_1: 'Nhẹ',
+        level_2: 'Trêu',
+        level_3: 'Nồng',
+        level_4: 'Dữ',
+        level_5: 'Cực',
+    }
+};
+
+// ==================== 指令库（多语言） ====================
+const commands = {
+    zh: {
+        gentle: [
+            { cmd: '用右手轻轻托起 TA 的下巴，先吻额头，再吻鼻尖，最后轻触嘴唇', level: 1, duration: 30, pose: 'kiss' },
+            { cmd: '从背后环抱 TA，嘴唇贴着耳朵，轻声说一句想对 TA 做的事', level: 1, pose: 'hug' },
+            { cmd: '用食指从 TA 的耳后滑到锁骨中央，来回3次', level: 1, duration: 20, pose: 'touch' },
+            { cmd: '慢慢解开 TA 上衣的扣子，每解开一颗就亲吻露出的皮肤', level: 1, pose: 'touch' },
+            { cmd: '把 TA 的耳垂含进嘴里，用舌尖轻轻打圈', level: 1, duration: 15, pose: 'kiss' },
+            { cmd: '双手捧着 TA 的脸，看着 TA 的眼睛数到3，然后深吻', level: 1, pose: 'kiss' },
+            { cmd: '把脸埋进 TA 的脖颈，让 TA 感受你的呼吸20秒', level: 1, duration: 20, pose: 'hug' },
+            { cmd: '用舌尖从锁骨中央舔到胸口正中间，速度要慢', level: 2, duration: 20, pose: 'touch' },
+            { cmd: '隔着内衣揉 TA 的胸部，顺时针5圈，逆时针5圈', level: 2, duration: 30, pose: 'touch' },
+            { cmd: '咬住 TA 的下嘴唇往外拉，停2秒放开，重复3次', level: 2, duration: 15, pose: 'kiss' },
+            { cmd: '用嘴唇含住 TA 的乳头，舌头画圈，左右各30秒', level: 2, duration: 60, pose: 'lying' },
+            { cmd: '手从膝盖往上滑到大腿内侧，停在离私处5厘米处', level: 2, duration: 30, pose: 'touch' },
+        ],
+        passionate: [
+            { cmd: '选 TA 脖子或胸口的位置，用力吸吮15秒，留下印记', level: 3, duration: 15, pose: 'kiss' },
+            { cmd: '让 TA 趴着，你从后面进入，双手按住肩膀，匀速动1分钟', level: 3, duration: 60, pose: 'doggy' },
+            { cmd: 'TA 坐在你身上面对你，用双手握住腰控制上下节奏', level: 3, pose: 'cowgirl' },
+            { cmd: '把 TA 的双腿抬到肩膀上，双手抓住脚踝，深入慢出', level: 3, pose: 'legs_up' },
+            { cmd: '用两根手指进入，向上勾起找G点，拇指同时刺激外面', level: 3, duration: 60, pose: 'touch' },
+            { cmd: '换到沙发/椅子/厨房台面上继续', level: 3, pose: 'wall' },
+            { cmd: '让 TA 跪下用嘴服务你，一只手放 TA 头上引导节奏', level: 3, duration: 120, pose: 'oral' },
+            { cmd: '把 TA 抵在墙上，抬起一条腿，面对面进入', level: 3, pose: 'wall' },
+            { cmd: '保持当前姿势，速度加到最快，维持30秒', level: 3, duration: 30, pose: 'cowgirl' },
+            { cmd: '69姿势：互相用嘴服务对方2分钟', level: 3, duration: 120, pose: 'sixtynine' },
+            { cmd: '双手托住臀部把 TA 抱起来，站着做1分钟', level: 3, duration: 60, pose: 'carry' },
+        ],
+        wild: [
+            { cmd: '蒙住 TA 的眼睛并系紧，然后随机触碰身体各处让TA猜', level: 4, pose: 'blindfold' },
+            { cmd: '用手掌拍打 TA 的臀部，左右各5下，力度到 TA 叫出声', level: 4, pose: 'spank' },
+            { cmd: '让 TA 趴着，从后面进入，一只手拽住头发向后拉', level: 4, pose: 'hairpull' },
+            { cmd: '用丝巾/领带绑住 TA 的双手到床头', level: 4, pose: 'tied' },
+            { cmd: '告诉 TA 接下来1分钟不准出声，叫一次就打一下屁股', level: 4, duration: 60, pose: 'spank' },
+            { cmd: '刺激 TA 直到快要高潮然后停下30秒，重复3次再让 TA 释放', level: 5, pose: 'blindfold' },
+            { cmd: '蒙眼+绑手，让 TA 只能被动感受你的每一个动作', level: 5, pose: 'tied' },
+            { cmd: 'TA 必须完全服从你接下来3分钟的所有指令', level: 5, duration: 180, pose: 'kneel' },
+            { cmd: '用皮带轻轻抽打 TA 的臀部，问TA：还要不要？', level: 4, pose: 'spank' },
+            { cmd: '让 TA 跪在地上，仰头看着你，用手托住 TA 的下巴', level: 4, pose: 'kneel' },
+        ],
+        extreme: [
+            { cmd: '命令 TA 跪下，双手背后，眼睛看地面，叫你"主人"', level: 5, pose: 'kneel' },
+            { cmd: '用项圈套住 TA 的脖子，牵着链子让 TA 爬向床', level: 5, pose: 'collar' },
+            { cmd: '让 TA 趴在你腿上，打10下屁股，每一下都要 TA 数出来并说谢谢', level: 5, pose: 'spank' },
+            { cmd: '把 TA 绑成大字型固定在床上，蒙眼堵嘴，任你摆布', level: 5, duration: 180, pose: 'xpose' },
+            { cmd: '用低温蜡烛油滴在 TA 的胸口和小腹（先测试温度！）', level: 5, pose: 'candle' },
+            { cmd: '命令 TA 自己扩张给你看，不准移开视线', level: 5, duration: 60, pose: 'obey' },
+            { cmd: '让 TA 穿上你选的羞耻play服装，在你面前表演', level: 5, pose: 'obey' },
+            { cmd: '把 TA 反绑蒙眼，放着不管2分钟，让 TA 在期待中煎熬', level: 5, duration: 120, pose: 'blindfold' },
+            { cmd: '让 TA 求你，求得不够诚恳就不给，直到你满意', level: 5, pose: 'kneel' },
+        ],
+    },
+    en: {
+        gentle: [
+            { cmd: 'Gently lift their chin, kiss forehead first, then nose tip, finally touch lips softly', level: 1, duration: 30, pose: 'kiss' },
+            { cmd: 'Hug them from behind, whisper in their ear something you want to do to them', level: 1, pose: 'hug' },
+            { cmd: 'Slide your finger from behind their ear to the center of their collarbone, 3 times', level: 1, duration: 20, pose: 'touch' },
+            { cmd: 'Slowly unbutton their shirt, kiss the exposed skin with each button', level: 1, pose: 'touch' },
+            { cmd: 'Take their earlobe in your mouth, trace circles with your tongue', level: 1, duration: 15, pose: 'kiss' },
+            { cmd: 'Cup their face with both hands, look into their eyes, count to 3, then kiss deeply', level: 1, pose: 'kiss' },
+            { cmd: 'Bury your face in their neck, let them feel your breath for 20 seconds', level: 1, duration: 20, pose: 'hug' },
+            { cmd: 'Lick from their collarbone to the center of their chest, go slowly', level: 2, duration: 20, pose: 'touch' },
+            { cmd: 'Massage their chest over underwear, 5 circles clockwise, 5 counter-clockwise', level: 2, duration: 30, pose: 'touch' },
+            { cmd: 'Bite and pull their lower lip, hold for 2 seconds, repeat 3 times', level: 2, duration: 15, pose: 'kiss' },
+            { cmd: 'Take their nipple in your mouth, circle with tongue, 30 seconds each side', level: 2, duration: 60, pose: 'lying' },
+            { cmd: 'Slide hand from knee up inner thigh, stop 2 inches from intimate area', level: 2, duration: 30, pose: 'touch' },
+        ],
+        passionate: [
+            { cmd: 'Choose a spot on neck or chest, suck hard for 15 seconds to leave a mark', level: 3, duration: 15, pose: 'kiss' },
+            { cmd: 'Have them lie face down, enter from behind, hands on shoulders, steady pace for 1 min', level: 3, duration: 60, pose: 'doggy' },
+            { cmd: 'They sit on you facing you, grip their waist to control the rhythm', level: 3, pose: 'cowgirl' },
+            { cmd: 'Lift their legs to your shoulders, hold ankles, deep and slow', level: 3, pose: 'legs_up' },
+            { cmd: 'Use two fingers inside, curl up to find G-spot, thumb stimulates outside', level: 3, duration: 60, pose: 'touch' },
+            { cmd: 'Move to the couch, chair, or kitchen counter and continue there', level: 3, pose: 'wall' },
+            { cmd: 'Have them kneel and use their mouth, one hand on head to guide rhythm', level: 3, duration: 120, pose: 'oral' },
+            { cmd: 'Pin them against the wall, lift one leg, enter face to face', level: 3, pose: 'wall' },
+            { cmd: 'Keep current position, go as fast as possible for 30 seconds', level: 3, duration: 30, pose: 'cowgirl' },
+            { cmd: '69 position: pleasure each other with mouths for 2 minutes', level: 3, duration: 120, pose: 'sixtynine' },
+            { cmd: 'Lift them by the hips, do it standing for 1 minute', level: 3, duration: 60, pose: 'carry' },
+        ],
+        wild: [
+            { cmd: 'Blindfold them tightly, then touch random body parts and make them guess', level: 4, pose: 'blindfold' },
+            { cmd: 'Spank their bottom, 5 on each side, hard enough to make them moan', level: 4, pose: 'spank' },
+            { cmd: 'Have them lie face down, enter from behind, pull their hair back with one hand', level: 4, pose: 'hairpull' },
+            { cmd: 'Tie their hands to the headboard with a scarf or tie', level: 4, pose: 'tied' },
+            { cmd: 'Tell them no sounds for 1 minute, one spank for each noise they make', level: 4, duration: 60, pose: 'spank' },
+            { cmd: 'Edge them to almost climax then stop for 30 sec, repeat 3 times before release', level: 5, pose: 'blindfold' },
+            { cmd: 'Blindfold + tied hands, they can only passively feel everything you do', level: 5, pose: 'tied' },
+            { cmd: 'They must obey every command for the next 3 minutes', level: 5, duration: 180, pose: 'kneel' },
+            { cmd: 'Lightly whip their bottom with a belt, ask: do you want more?', level: 4, pose: 'spank' },
+            { cmd: 'Have them kneel, look up at you, hold their chin with your hand', level: 4, pose: 'kneel' },
+        ],
+        extreme: [
+            { cmd: 'Command them to kneel, hands behind back, eyes down, call you "Master"', level: 5, pose: 'kneel' },
+            { cmd: 'Put a collar around their neck, lead them by leash to crawl to bed', level: 5, pose: 'collar' },
+            { cmd: 'Have them lie across your lap, 10 spanks, they count each and say thank you', level: 5, pose: 'spank' },
+            { cmd: 'Tie them spread-eagle on bed, blindfolded and gagged, at your mercy', level: 5, duration: 180, pose: 'xpose' },
+            { cmd: 'Drip low-temp candle wax on chest and belly (test temperature first!)', level: 5, pose: 'candle' },
+            { cmd: 'Command them to prepare themselves while you watch, no looking away', level: 5, duration: 60, pose: 'obey' },
+            { cmd: 'Have them wear the embarrassing outfit you choose and perform for you', level: 5, pose: 'obey' },
+            { cmd: 'Tie and blindfold them, leave them waiting for 2 min in anticipation', level: 5, duration: 120, pose: 'blindfold' },
+            { cmd: 'Make them beg, not sincere enough means no, until you are satisfied', level: 5, pose: 'kneel' },
+        ],
+    },
+    vi: {
+        gentle: [
+            { cmd: 'Nhẹ nhàng nâng cằm họ, hôn trán trước, rồi mũi, cuối cùng chạm môi nhẹ', level: 1, duration: 30, pose: 'kiss' },
+            { cmd: 'Ôm họ từ phía sau, thì thầm vào tai điều bạn muốn làm với họ', level: 1, pose: 'hug' },
+            { cmd: 'Vuốt ngón tay từ sau tai đến giữa xương quai xanh, 3 lần', level: 1, duration: 20, pose: 'touch' },
+            { cmd: 'Từ từ cởi nút áo họ, hôn từng vùng da lộ ra', level: 1, pose: 'touch' },
+            { cmd: 'Ngậm dái tai họ, dùng lưỡi vẽ vòng tròn', level: 1, duration: 15, pose: 'kiss' },
+            { cmd: 'Ôm mặt họ bằng hai tay, nhìn vào mắt, đếm đến 3, rồi hôn sâu', level: 1, pose: 'kiss' },
+            { cmd: 'Vùi mặt vào cổ họ, để họ cảm nhận hơi thở của bạn 20 giây', level: 1, duration: 20, pose: 'hug' },
+            { cmd: 'Liếm từ xương quai xanh đến giữa ngực, thật chậm', level: 2, duration: 20, pose: 'touch' },
+            { cmd: 'Xoa ngực họ qua đồ lót, 5 vòng thuận, 5 vòng ngược', level: 2, duration: 30, pose: 'touch' },
+            { cmd: 'Cắn và kéo môi dưới họ, giữ 2 giây, lặp lại 3 lần', level: 2, duration: 15, pose: 'kiss' },
+            { cmd: 'Ngậm núm vú họ, lưỡi vẽ vòng tròn, mỗi bên 30 giây', level: 2, duration: 60, pose: 'lying' },
+            { cmd: 'Vuốt tay từ đầu gối lên đùi trong, dừng cách vùng kín 5cm', level: 2, duration: 30, pose: 'touch' },
+        ],
+        passionate: [
+            { cmd: 'Chọn một điểm trên cổ hoặc ngực, hút mạnh 15 giây để lại dấu', level: 3, duration: 15, pose: 'kiss' },
+            { cmd: 'Để họ nằm sấp, vào từ phía sau, tay đè vai, nhịp đều 1 phút', level: 3, duration: 60, pose: 'doggy' },
+            { cmd: 'Họ ngồi lên bạn đối mặt, nắm eo họ điều khiển nhịp độ', level: 3, pose: 'cowgirl' },
+            { cmd: 'Nâng chân họ lên vai, giữ mắt cá chân, vào sâu ra chậm', level: 3, pose: 'legs_up' },
+            { cmd: 'Dùng hai ngón tay, cong lên tìm điểm G, ngón cái kích thích bên ngoài', level: 3, duration: 60, pose: 'touch' },
+            { cmd: 'Di chuyển sang sofa, ghế, hoặc bàn bếp và tiếp tục ở đó', level: 3, pose: 'wall' },
+            { cmd: 'Để họ quỳ xuống dùng miệng phục vụ, một tay trên đầu dẫn nhịp', level: 3, duration: 120, pose: 'oral' },
+            { cmd: 'Đẩy họ vào tường, nâng một chân, vào mặt đối mặt', level: 3, pose: 'wall' },
+            { cmd: 'Giữ nguyên tư thế, đi nhanh nhất có thể trong 30 giây', level: 3, duration: 30, pose: 'cowgirl' },
+            { cmd: 'Tư thế 69: dùng miệng phục vụ nhau 2 phút', level: 3, duration: 120, pose: 'sixtynine' },
+            { cmd: 'Nâng họ bằng hông, làm đứng trong 1 phút', level: 3, duration: 60, pose: 'carry' },
+        ],
+        wild: [
+            { cmd: 'Bịt mắt họ chặt, rồi chạm ngẫu nhiên các bộ phận để họ đoán', level: 4, pose: 'blindfold' },
+            { cmd: 'Tát mông họ, mỗi bên 5 cái, đủ mạnh để họ rên lên', level: 4, pose: 'spank' },
+            { cmd: 'Để họ nằm sấp, vào từ sau, một tay kéo tóc họ ra sau', level: 4, pose: 'hairpull' },
+            { cmd: 'Trói tay họ vào đầu giường bằng khăn hoặc cà vạt', level: 4, pose: 'tied' },
+            { cmd: 'Bảo họ im lặng 1 phút, mỗi tiếng kêu là một cái tát mông', level: 4, duration: 60, pose: 'spank' },
+            { cmd: 'Đưa họ gần đỉnh rồi dừng 30 giây, lặp lại 3 lần trước khi cho phép', level: 5, pose: 'blindfold' },
+            { cmd: 'Bịt mắt + trói tay, họ chỉ có thể thụ động cảm nhận mọi thứ', level: 5, pose: 'tied' },
+            { cmd: 'Họ phải tuân theo mọi mệnh lệnh trong 3 phút tới', level: 5, duration: 180, pose: 'kneel' },
+            { cmd: 'Nhẹ nhàng quất mông họ bằng thắt lưng, hỏi: còn muốn nữa không?', level: 4, pose: 'spank' },
+            { cmd: 'Để họ quỳ xuống, ngước nhìn bạn, giữ cằm họ bằng tay', level: 4, pose: 'kneel' },
+        ],
+        extreme: [
+            { cmd: 'Ra lệnh họ quỳ, tay sau lưng, mắt nhìn xuống, gọi bạn là "Chủ nhân"', level: 5, pose: 'kneel' },
+            { cmd: 'Đeo vòng cổ cho họ, dắt bằng dây xích để họ bò về giường', level: 5, pose: 'collar' },
+            { cmd: 'Để họ nằm ngang chân bạn, 10 cái tát, họ đếm và nói cảm ơn', level: 5, pose: 'spank' },
+            { cmd: 'Trói họ hình chữ X trên giường, bịt mắt và miệng, tùy bạn xử lý', level: 5, duration: 180, pose: 'xpose' },
+            { cmd: 'Nhỏ sáp nến nhiệt độ thấp lên ngực và bụng (test nhiệt độ trước!)', level: 5, pose: 'candle' },
+            { cmd: 'Ra lệnh họ tự chuẩn bị trong khi bạn xem, không được nhìn đi chỗ khác', level: 5, duration: 60, pose: 'obey' },
+            { cmd: 'Bắt họ mặc bộ đồ xấu hổ bạn chọn và biểu diễn cho bạn', level: 5, pose: 'obey' },
+            { cmd: 'Trói và bịt mắt họ, bỏ mặc 2 phút trong sự chờ đợi', level: 5, duration: 120, pose: 'blindfold' },
+            { cmd: 'Bắt họ cầu xin, chưa đủ thành khẩn thì không cho, đến khi bạn hài lòng', level: 5, pose: 'kneel' },
+        ],
+    },
+};
+
 // ==================== SVG线条图库 ====================
 const poseSVGs = {
-    kiss: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round">
-        <ellipse cx="30" cy="28" rx="12" ry="14"/>
-        <ellipse cx="70" cy="28" rx="12" ry="14"/>
-        <path d="M42 28c4 3 12 3 16 0"/>
-        <path d="M30 42v20M70 42v20"/>
-        <path d="M25 35c-8 3-12 10-8 18M75 35c8 3 12 10 8 18"/>
-    </svg>`,
-
-    hug: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round">
-        <ellipse cx="35" cy="22" rx="10" ry="12"/>
-        <ellipse cx="65" cy="22" rx="10" ry="12"/>
-        <path d="M35 34v25M65 34v25"/>
-        <path d="M25 40c-8 5-8 18 0 22l10 3"/>
-        <path d="M75 40c8 5 8 18 0 22l-10 3"/>
-        <path d="M40 48h20"/>
-    </svg>`,
-
-    touch: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round">
-        <ellipse cx="65" cy="25" rx="12" ry="14"/>
-        <path d="M65 39v22"/>
-        <path d="M20 55c12-18 28-28 45-32"/>
-        <path d="M20 55l-5 8M20 55l8 2"/>
-        <circle cx="30" cy="45" r="2" fill="#ff6b8a"/>
-        <circle cx="42" cy="38" r="2" fill="#ff6b8a"/>
-        <circle cx="54" cy="32" r="2" fill="#ff6b8a"/>
-    </svg>`,
-
-    lying: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round">
-        <ellipse cx="20" cy="40" rx="10" ry="8"/>
-        <path d="M30 40h50"/>
-        <path d="M80 40c5 0 8 5 8 10"/>
-        <path d="M80 55l8 12M30 42c8 6 18 8 28 5"/>
-        <ellipse cx="55" cy="38" rx="6" ry="4"/>
-    </svg>`,
-
-    doggy: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round">
-        <ellipse cx="25" cy="45" rx="9" ry="7"/>
-        <path d="M34 45l22-8"/>
-        <path d="M56 37l12 22M56 37l10-18"/>
-        <path d="M17 48l-8 18M17 42l-12-8"/>
-        <ellipse cx="72" cy="28" rx="9" ry="11"/>
-        <path d="M72 39v22M64 61h16"/>
-        <path d="M28 42c6-3 14-3 20 0"/>
-    </svg>`,
-
-    cowgirl: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round">
-        <ellipse cx="50" cy="18" rx="9" ry="11"/>
-        <path d="M50 29v18"/>
-        <path d="M35 55c0-5 7-10 15-10s15 5 15 10"/>
-        <ellipse cx="50" cy="58" rx="18" ry="8"/>
-        <path d="M32 58l-8 12M68 58l8 12"/>
-        <path d="M42 40c5-3 11-3 16 0"/>
-    </svg>`,
-
-    legs_up: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round">
-        <ellipse cx="30" cy="50" rx="10" ry="8"/>
-        <path d="M30 42l18-28M30 42l-18-22"/>
-        <path d="M40 50h22"/>
-        <ellipse cx="72" cy="38" rx="9" ry="11"/>
-        <path d="M72 49v15M64 64h16"/>
-        <circle cx="48" cy="14" r="3" fill="#ff6b8a"/>
-        <circle cx="12" cy="20" r="3" fill="#ff6b8a"/>
-    </svg>`,
-
-    oral: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round">
-        <ellipse cx="50" cy="20" rx="9" ry="11"/>
-        <path d="M50 31v12"/>
-        <ellipse cx="50" cy="52" rx="15" ry="10"/>
-        <path d="M35 52l-10 18M65 52l10 18"/>
-        <path d="M45 45c3-2 7-2 10 0"/>
-    </svg>`,
-
-    wall: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round">
-        <path d="M15 5v70" stroke-width="3"/>
-        <ellipse cx="30" cy="22" rx="8" ry="10"/>
-        <path d="M30 32v22M22 54l-7 18M38 54l8 12"/>
-        <ellipse cx="55" cy="28" rx="8" ry="10"/>
-        <path d="M55 38v18M47 56l-5 16M63 56l5 16"/>
-        <path d="M35 45c5-5 12-5 17 0"/>
-    </svg>`,
-
-    sixtynine: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round">
-        <ellipse cx="22" cy="28" rx="9" ry="7"/>
-        <path d="M31 28h40"/>
-        <path d="M22 35l-10 20M22 21l-8-15"/>
-        <ellipse cx="78" cy="52" rx="9" ry="7"/>
-        <path d="M78 45l10-20M78 59l8 15"/>
-    </svg>`,
-
-    carry: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round">
-        <ellipse cx="50" cy="12" rx="8" ry="10"/>
-        <ellipse cx="50" cy="35" rx="7" ry="9"/>
-        <path d="M50 22v6"/>
-        <path d="M43 44l-10 22M57 44l10 22"/>
-        <path d="M33 30c-10 5-12 18-5 25"/>
-        <path d="M67 30c10 5 12 18 5 25"/>
-        <path d="M42 50c5 4 11 4 16 0"/>
-    </svg>`,
-
-    blindfold: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round">
-        <ellipse cx="50" cy="25" rx="12" ry="15"/>
-        <path d="M30 20h40" stroke-width="4"/>
-        <path d="M50 40v18"/>
-        <path d="M35 58h30"/>
-        <path d="M38 58l-8 16M62 58l8 16"/>
-    </svg>`,
-
-    spank: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round">
-        <ellipse cx="35" cy="48" rx="16" ry="12"/>
-        <path d="M19 48l-10 22M51 48l10 16"/>
-        <ellipse cx="25" cy="35" rx="8" ry="6"/>
-        <path d="M72 20l-18 22" stroke-width="3"/>
-        <path d="M58 28l6-12M58 28l12 2"/>
-        <path d="M54 42l-4 6M58 38l6 4"/>
-    </svg>`,
-
-    hairpull: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round">
-        <ellipse cx="30" cy="32" rx="11" ry="13"/>
-        <path d="M25 19c-6-12 2-18 12-16s14 10 8 20"/>
-        <path d="M42 22l28-10"/>
-        <path d="M70 12l6-6M70 12l6 4"/>
-        <path d="M30 45v20M20 65h20"/>
-    </svg>`,
-
-    tied: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round">
-        <ellipse cx="50" cy="18" rx="9" ry="11"/>
-        <path d="M50 29v25"/>
-        <path d="M30 38h40"/>
-        <path d="M30 38l-12-25M70 38l12-25"/>
-        <rect x="15" y="10" width="8" height="6" rx="1"/>
-        <rect x="77" y="10" width="8" height="6" rx="1"/>
-        <path d="M40 54l-8 18M60 54l8 18"/>
-    </svg>`,
-
-    kneel: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round">
-        <ellipse cx="50" cy="18" rx="9" ry="11"/>
-        <path d="M50 29v22"/>
-        <path d="M35 51c0 12 7 20 15 20s15-8 15-20"/>
-        <path d="M38 55l-15 8M62 55l15 8"/>
-        <path d="M45 38c3-3 7-3 10 0"/>
-    </svg>`,
-
-    collar: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round">
-        <ellipse cx="30" cy="22" rx="9" ry="11"/>
-        <ellipse cx="30" cy="36" rx="7" ry="4" stroke-width="3"/>
-        <path d="M37 36l45 25"/>
-        <circle cx="82" cy="61" r="4"/>
-        <path d="M30 40v25"/>
-        <path d="M20 65l-8 10M40 65l8 10"/>
-    </svg>`,
-
-    xpose: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round">
-        <ellipse cx="50" cy="18" rx="9" ry="11"/>
-        <path d="M50 29v25"/>
-        <path d="M18 30l32 8M82 30l-32 8"/>
-        <path d="M32 54l-18 20M68 54l18 20"/>
-        <circle cx="18" cy="30" r="4" fill="#ff6b8a"/>
-        <circle cx="82" cy="30" r="4" fill="#ff6b8a"/>
-        <circle cx="14" cy="74" r="4" fill="#ff6b8a"/>
-        <circle cx="86" cy="74" r="4" fill="#ff6b8a"/>
-    </svg>`,
-
-    candle: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round">
-        <path d="M50 8c-4 6-4 12 0 18s4 10 0 16"/>
-        <rect x="44" y="24" width="12" height="32" rx="2"/>
-        <ellipse cx="50" cy="65" rx="20" ry="8"/>
-        <circle cx="50" cy="45" r="2" fill="#ff6b8a"/>
-        <circle cx="50" cy="52" r="2" fill="#ff6b8a"/>
-        <path d="M35 62c-5 4-5 10 0 13M65 62c5 4 5 10 0 13"/>
-    </svg>`,
-
-    obey: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round">
-        <ellipse cx="50" cy="48" rx="9" ry="11"/>
-        <path d="M50 59v12"/>
-        <path d="M35 71c0 4 7 7 15 7s15-3 15-7"/>
-        <path d="M41 37l-18-25M59 37l18-25"/>
-        <path d="M23 12l-6-6M23 12l6-2"/>
-        <path d="M77 12l6-6M77 12l-6-2"/>
-    </svg>`,
+    kiss: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round"><ellipse cx="30" cy="28" rx="12" ry="14"/><ellipse cx="70" cy="28" rx="12" ry="14"/><path d="M42 28c4 3 12 3 16 0"/><path d="M30 42v20M70 42v20"/><path d="M25 35c-8 3-12 10-8 18M75 35c8 3 12 10 8 18"/></svg>`,
+    hug: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round"><ellipse cx="35" cy="22" rx="10" ry="12"/><ellipse cx="65" cy="22" rx="10" ry="12"/><path d="M35 34v25M65 34v25"/><path d="M25 40c-8 5-8 18 0 22l10 3"/><path d="M75 40c8 5 8 18 0 22l-10 3"/><path d="M40 48h20"/></svg>`,
+    touch: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round"><ellipse cx="65" cy="25" rx="12" ry="14"/><path d="M65 39v22"/><path d="M20 55c12-18 28-28 45-32"/><path d="M20 55l-5 8M20 55l8 2"/><circle cx="30" cy="45" r="2" fill="#ff6b8a"/><circle cx="42" cy="38" r="2" fill="#ff6b8a"/><circle cx="54" cy="32" r="2" fill="#ff6b8a"/></svg>`,
+    lying: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round"><ellipse cx="20" cy="40" rx="10" ry="8"/><path d="M30 40h50"/><path d="M80 40c5 0 8 5 8 10"/><path d="M80 55l8 12M30 42c8 6 18 8 28 5"/><ellipse cx="55" cy="38" rx="6" ry="4"/></svg>`,
+    doggy: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round"><ellipse cx="25" cy="45" rx="9" ry="7"/><path d="M34 45l22-8"/><path d="M56 37l12 22M56 37l10-18"/><path d="M17 48l-8 18M17 42l-12-8"/><ellipse cx="72" cy="28" rx="9" ry="11"/><path d="M72 39v22M64 61h16"/><path d="M28 42c6-3 14-3 20 0"/></svg>`,
+    cowgirl: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round"><ellipse cx="50" cy="18" rx="9" ry="11"/><path d="M50 29v18"/><path d="M35 55c0-5 7-10 15-10s15 5 15 10"/><ellipse cx="50" cy="58" rx="18" ry="8"/><path d="M32 58l-8 12M68 58l8 12"/><path d="M42 40c5-3 11-3 16 0"/></svg>`,
+    legs_up: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round"><ellipse cx="30" cy="50" rx="10" ry="8"/><path d="M30 42l18-28M30 42l-18-22"/><path d="M40 50h22"/><ellipse cx="72" cy="38" rx="9" ry="11"/><path d="M72 49v15M64 64h16"/><circle cx="48" cy="14" r="3" fill="#ff6b8a"/><circle cx="12" cy="20" r="3" fill="#ff6b8a"/></svg>`,
+    oral: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round"><ellipse cx="50" cy="20" rx="9" ry="11"/><path d="M50 31v12"/><ellipse cx="50" cy="52" rx="15" ry="10"/><path d="M35 52l-10 18M65 52l10 18"/><path d="M45 45c3-2 7-2 10 0"/></svg>`,
+    wall: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round"><path d="M15 5v70" stroke-width="3"/><ellipse cx="30" cy="22" rx="8" ry="10"/><path d="M30 32v22M22 54l-7 18M38 54l8 12"/><ellipse cx="55" cy="28" rx="8" ry="10"/><path d="M55 38v18M47 56l-5 16M63 56l5 16"/><path d="M35 45c5-5 12-5 17 0"/></svg>`,
+    sixtynine: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round"><ellipse cx="22" cy="28" rx="9" ry="7"/><path d="M31 28h40"/><path d="M22 35l-10 20M22 21l-8-15"/><ellipse cx="78" cy="52" rx="9" ry="7"/><path d="M78 45l10-20M78 59l8 15"/></svg>`,
+    carry: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round"><ellipse cx="50" cy="12" rx="8" ry="10"/><ellipse cx="50" cy="35" rx="7" ry="9"/><path d="M50 22v6"/><path d="M43 44l-10 22M57 44l10 22"/><path d="M33 30c-10 5-12 18-5 25"/><path d="M67 30c10 5 12 18 5 25"/><path d="M42 50c5 4 11 4 16 0"/></svg>`,
+    blindfold: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round"><ellipse cx="50" cy="25" rx="12" ry="15"/><path d="M30 20h40" stroke-width="4"/><path d="M50 40v18"/><path d="M35 58h30"/><path d="M38 58l-8 16M62 58l8 16"/></svg>`,
+    spank: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round"><ellipse cx="35" cy="48" rx="16" ry="12"/><path d="M19 48l-10 22M51 48l10 16"/><ellipse cx="25" cy="35" rx="8" ry="6"/><path d="M72 20l-18 22" stroke-width="3"/><path d="M58 28l6-12M58 28l12 2"/><path d="M54 42l-4 6M58 38l6 4"/></svg>`,
+    hairpull: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round"><ellipse cx="30" cy="32" rx="11" ry="13"/><path d="M25 19c-6-12 2-18 12-16s14 10 8 20"/><path d="M42 22l28-10"/><path d="M70 12l6-6M70 12l6 4"/><path d="M30 45v20M20 65h20"/></svg>`,
+    tied: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round"><ellipse cx="50" cy="18" rx="9" ry="11"/><path d="M50 29v25"/><path d="M30 38h40"/><path d="M30 38l-12-25M70 38l12-25"/><rect x="15" y="10" width="8" height="6" rx="1"/><rect x="77" y="10" width="8" height="6" rx="1"/><path d="M40 54l-8 18M60 54l8 18"/></svg>`,
+    kneel: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round"><ellipse cx="50" cy="18" rx="9" ry="11"/><path d="M50 29v22"/><path d="M35 51c0 12 7 20 15 20s15-8 15-20"/><path d="M38 55l-15 8M62 55l15 8"/><path d="M45 38c3-3 7-3 10 0"/></svg>`,
+    collar: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round"><ellipse cx="30" cy="22" rx="9" ry="11"/><ellipse cx="30" cy="36" rx="7" ry="4" stroke-width="3"/><path d="M37 36l45 25"/><circle cx="82" cy="61" r="4"/><path d="M30 40v25"/><path d="M20 65l-8 10M40 65l8 10"/></svg>`,
+    xpose: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round"><ellipse cx="50" cy="18" rx="9" ry="11"/><path d="M50 29v25"/><path d="M18 30l32 8M82 30l-32 8"/><path d="M32 54l-18 20M68 54l18 20"/><circle cx="18" cy="30" r="4" fill="#ff6b8a"/><circle cx="82" cy="30" r="4" fill="#ff6b8a"/><circle cx="14" cy="74" r="4" fill="#ff6b8a"/><circle cx="86" cy="74" r="4" fill="#ff6b8a"/></svg>`,
+    candle: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round"><path d="M50 8c-4 6-4 12 0 18s4 10 0 16"/><rect x="44" y="24" width="12" height="32" rx="2"/><ellipse cx="50" cy="65" rx="20" ry="8"/><circle cx="50" cy="45" r="2" fill="#ff6b8a"/><circle cx="50" cy="52" r="2" fill="#ff6b8a"/><path d="M35 62c-5 4-5 10 0 13M65 62c5 4 5 10 0 13"/></svg>`,
+    obey: `<svg viewBox="0 0 100 80" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round"><ellipse cx="50" cy="48" rx="9" ry="11"/><path d="M50 59v12"/><path d="M35 71c0 4 7 7 15 7s15-3 15-7"/><path d="M41 37l-18-25M59 37l18-25"/><path d="M23 12l-6-6M23 12l6-2"/><path d="M77 12l6-6M77 12l-6-2"/></svg>`,
 };
 
-// ==================== 指令库 ====================
-const commands = {
-    gentle: [
-        { cmd: '用右手轻轻托起 TA 的下巴，先吻额头，再吻鼻尖，最后轻触嘴唇', level: 1, duration: 30, pose: 'kiss' },
-        { cmd: '从背后环抱 TA，嘴唇贴着耳朵，轻声说一句想对 TA 做的事', level: 1, pose: 'hug' },
-        { cmd: '用食指从 TA 的耳后滑到锁骨中央，来回3次', level: 1, duration: 20, pose: 'touch' },
-        { cmd: '慢慢解开 TA 上衣的扣子，每解开一颗就亲吻露出的皮肤', level: 1, pose: 'touch' },
-        { cmd: '把 TA 的耳垂含进嘴里，用舌尖轻轻打圈', level: 1, duration: 15, pose: 'kiss' },
-        { cmd: '双手捧着 TA 的脸，看着 TA 的眼睛数到3，然后深吻', level: 1, pose: 'kiss' },
-        { cmd: '把脸埋进 TA 的脖颈，让 TA 感受你的呼吸20秒', level: 1, duration: 20, pose: 'hug' },
-        { cmd: '用舌尖从锁骨中央舔到胸口正中间，速度要慢', level: 2, duration: 20, pose: 'touch' },
-        { cmd: '隔着内衣揉 TA 的胸部，顺时针5圈，逆时针5圈', level: 2, duration: 30, pose: 'touch' },
-        { cmd: '咬住 TA 的下嘴唇往外拉，停2秒放开，重复3次', level: 2, duration: 15, pose: 'kiss' },
-        { cmd: '用嘴唇含住 TA 的乳头，舌头画圈，左右各30秒', level: 2, duration: 60, pose: 'lying' },
-        { cmd: '手从膝盖往上滑到大腿内侧，停在离私处5厘米处', level: 2, duration: 30, pose: 'touch' },
-        { cmd: '用食指隔着内裤沿中线上下滑动，速度由慢变快', level: 2, duration: 30, pose: 'touch' },
-    ],
-    passionate: [
-        { cmd: '选 TA 脖子或胸口的位置，用力吸吮15秒，留下印记', level: 3, duration: 15, pose: 'kiss' },
-        { cmd: '让 TA 趴着，你从后面进入，双手按住肩膀，匀速动1分钟', level: 3, duration: 60, pose: 'doggy' },
-        { cmd: 'TA 坐在你身上面对你，用双手握住腰控制上下节奏', level: 3, pose: 'cowgirl' },
-        { cmd: '把 TA 的双腿抬到肩膀上，双手抓住脚踝，深入慢出', level: 3, pose: 'legs_up' },
-        { cmd: '用两根手指进入，向上勾起找G点，拇指同时刺激外面', level: 3, duration: 60, pose: 'touch' },
-        { cmd: '换到沙发/椅子/厨房台面上继续', level: 3, pose: 'wall' },
-        { cmd: '让 TA 跪下用嘴服务你，一只手放 TA 头上引导节奏', level: 3, duration: 120, pose: 'oral' },
-        { cmd: '把 TA 抵在墙上，抬起一条腿，面对面进入', level: 3, pose: 'wall' },
-        { cmd: '保持当前姿势，速度加到最快，维持30秒', level: 3, duration: 30, pose: 'cowgirl' },
-        { cmd: '69姿势：互相用嘴服务对方2分钟', level: 3, duration: 120, pose: 'sixtynine' },
-        { cmd: '双手托住臀部把 TA 抱起来，站着做1分钟', level: 3, duration: 60, pose: 'carry' },
-        { cmd: '拿一块冰块含在嘴里，用冰凉的舌头舔 TA 的乳头', level: 3, duration: 30, pose: 'lying' },
-        { cmd: '用你们都觉得��爽的姿势，不换一直做到高潮', level: 3, pose: 'cowgirl' },
-    ],
-    wild: [
-        { cmd: '蒙住 TA 的眼睛并系紧，然后随机触碰身体各处让TA猜', level: 4, pose: 'blindfold' },
-        { cmd: '用手掌拍打 TA 的臀部，左右各5下，力度到 TA 叫出声', level: 4, pose: 'spank' },
-        { cmd: '让 TA 趴着，从后面进入，一只手拽住头发向后拉', level: 4, pose: 'hairpull' },
-        { cmd: '用丝巾/领带绑住 TA 的双手到床头', level: 4, pose: 'tied' },
-        { cmd: '告诉 TA 接下来1分钟不准出声，叫一次就打一下屁股', level: 4, duration: 60, pose: 'spank' },
-        { cmd: '刺激 TA 直到快要高潮然后停下30秒，重复3次再让 TA 释放', level: 5, pose: 'blindfold' },
-        { cmd: '蒙眼+绑手，让 TA 只能被动感受你的每一个动作', level: 5, pose: 'tied' },
-        { cmd: 'TA 必须完全服从你接下来3分钟的所有指令', level: 5, duration: 180, pose: 'kneel' },
-        { cmd: '把 TA 固定住不让动弹，你想怎么做就怎么做', level: 5, duration: 120, pose: 'xpose' },
-        { cmd: '用皮带轻轻抽打 TA 的臀部，问TA：还要不要？', level: 4, pose: 'spank' },
-        { cmd: '让 TA 跪在地上，仰头看着你，用手托住 TA 的下巴', level: 4, pose: 'kneel' },
-        { cmd: '在 TA 耳边说：你是我的。然后狠狠进入', level: 4, pose: 'doggy' },
-        { cmd: '抓住 TA 的脚踝把腿分开固定住，不让合拢', level: 4, duration: 60, pose: 'legs_up' },
-        { cmd: '用手轻轻扣住 TA 的脖子（别用力），盯着TA的眼睛', level: 4, duration: 15, pose: 'wall' },
-    ],
-    extreme: [
-        { cmd: '命令 TA 跪下，双手背后，眼睛看地面，叫你"主人"', level: 5, pose: 'kneel' },
-        { cmd: '用项圈套住 TA 的脖子，牵着链子让 TA 爬向床', level: 5, pose: 'collar' },
-        { cmd: '让 TA 趴在你腿上，打10下屁股，每一下都要 TA 数出来并说谢谢', level: 5, pose: 'spank' },
-        { cmd: '把 TA 绑成大字型固定在床上，蒙眼堵嘴，任你摆布', level: 5, duration: 180, pose: 'xpose' },
-        { cmd: '让 TA 含着口球，只能发出呜呜声，看 TA 有多想要', level: 5, duration: 120, pose: 'tied' },
-        { cmd: '用低温蜡烛油滴在 TA 的胸口和小腹（先测试温度！）', level: 5, pose: 'candle' },
-        { cmd: '命令 TA 自己扩张给你看，不准移开视线', level: 5, duration: 60, pose: 'obey' },
-        { cmd: '在 TA 身上夹乳夹，然后继续做别的，看 TA 能忍多久', level: 5, duration: 120, pose: 'tied' },
-        { cmd: '让 TA 穿上你选的羞耻play服装，在你面前表演', level: 5, pose: 'obey' },
-        { cmd: '把 TA 反绑蒙眼，放着不管2分钟，让 TA 在期待中煎熬', level: 5, duration: 120, pose: 'blindfold' },
-        { cmd: '边做边用手机录（只录你们想留的），让 TA 更羞耻', level: 5, pose: 'doggy' },
-        { cmd: '做完不让 TA 清��，含着保持10分钟', level: 5, duration: 600, pose: 'lying' },
-        { cmd: '让 TA 求你，求得不够诚恳就不给，直到你满意', level: 5, pose: 'kneel' },
-        { cmd: '用道具代替你自己，命令 TA 自己动，你在旁边看', level: 5, duration: 180, pose: 'obey' },
-        { cmd: '赏罚游戏：表现好奖励快感，不好就停下惩罚', level: 5, pose: 'spank' },
-    ],
-};
-
-const modeNames = { gentle: '���柔', passionate: '激情', wild: '狂野', extreme: '极限SM' };
-const levelNames = { 1: '温柔', 2: '挑逗', 3: '激情', 4: '狂野', 5: '极限' };
 const levelColors = { 1: '#ff9ed2', 2: '#ff6b9d', 3: '#ff4757', 4: '#c41e3a', 5: '#8b0000' };
 
 // ==================== 状态 ====================
+let currentLang = localStorage.getItem('lang') || 'zh';
 let gameMode = 'wild';
 let isFlipped = false;
 let timerInterval = null;
-let currentCmd = null;
 
 // ==================== DOM ====================
 const card = document.getElementById('card');
@@ -764,30 +840,62 @@ const modeBadge = document.getElementById('modeBadge');
 const dbMeter = document.getElementById('dbMeter');
 const dbFill = document.getElementById('dbFill');
 const musicBtn = document.getElementById('musicBtn');
+const langBtn = document.getElementById('langBtn');
+const langPanel = document.getElementById('langPanel');
 
-// ==================== 背景音乐（激情版 + 喘息声） ====================
+// ==================== 多语言切换 ====================
+function updateUI() {
+    const t = i18n[currentLang];
+    document.getElementById('tapToReveal').textContent = t.tapToReveal;
+    document.getElementById('btnSkip').textContent = t.skip;
+    document.getElementById('btnNext').textContent = t.next;
+    document.getElementById('settingsTitle').textContent = t.settingsTitle;
+    document.getElementById('modeWarning').textContent = t.modeWarning;
+    langBtn.textContent = '🌐 ' + t.langName;
+
+    // 更新模式名称
+    document.querySelectorAll('.mode-card').forEach(card => {
+        const mode = card.dataset.mode;
+        card.querySelector('.mode-name').innerHTML = t['mode_' + mode];
+        card.querySelector('.mode-desc').innerHTML = t['mode_' + mode + '_desc'];
+    });
+
+    // 更新当前模式徽章
+    modeBadge.textContent = t['mode_' + gameMode];
+
+    // 更新语言选项的激活状态
+    document.querySelectorAll('.lang-option').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.lang === currentLang);
+    });
+}
+
+function setLanguage(lang) {
+    currentLang = lang;
+    localStorage.setItem('lang', lang);
+    updateUI();
+    langPanel.classList.remove('open');
+}
+
+langBtn.addEventListener('click', () => langPanel.classList.add('open'));
+document.querySelectorAll('.lang-option').forEach(opt => {
+    opt.addEventListener('click', () => setLanguage(opt.dataset.lang));
+});
+
+// ==================== 背景音乐 ====================
 let audioCtx = null;
 let musicPlaying = false;
 let beatInterval = null;
 let moanInterval = null;
 
 function initAudioContext() {
-    if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-    }
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
     return audioCtx;
 }
 
-// 低沉节拍
 function playBeat() {
     if (!musicPlaying || !audioCtx) return;
-
     const now = audioCtx.currentTime;
-
-    // 主低音鼓
     const kick = audioCtx.createOscillator();
     const kickGain = audioCtx.createGain();
     kick.type = 'sine';
@@ -799,129 +907,39 @@ function playBeat() {
     kickGain.connect(audioCtx.destination);
     kick.start(now);
     kick.stop(now + 0.25);
-
-    // 次拍 - 更性感的节奏
-    setTimeout(() => {
-        if (!musicPlaying || !audioCtx) return;
-        const sub = audioCtx.createOscillator();
-        const subGain = audioCtx.createGain();
-        sub.type = 'sine';
-        sub.frequency.setValueAtTime(80, audioCtx.currentTime);
-        sub.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.08);
-        subGain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        subGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-        sub.connect(subGain);
-        subGain.connect(audioCtx.destination);
-        sub.start();
-        sub.stop(audioCtx.currentTime + 0.15);
-    }, 300);
-
-    // 第三拍
-    setTimeout(() => {
-        if (!musicPlaying || !audioCtx) return;
-        const hit = audioCtx.createOscillator();
-        const hitGain = audioCtx.createGain();
-        hit.type = 'sine';
-        hit.frequency.setValueAtTime(120, audioCtx.currentTime);
-        hit.frequency.exponentialRampToValueAtTime(35, audioCtx.currentTime + 0.1);
-        hitGain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-        hitGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-        hit.connect(hitGain);
-        hitGain.connect(audioCtx.destination);
-        hit.start();
-        hit.stop(audioCtx.currentTime + 0.2);
-    }, 450);
 }
 
-// 模拟喘息/呻吟声
 function playMoan() {
     if (!musicPlaying || !audioCtx) return;
-
     const now = audioCtx.currentTime;
     const duration = 0.4 + Math.random() * 0.6;
-    const baseFreq = 280 + Math.random() * 180; // 女声频率范围
-
-    // 主音
+    const baseFreq = 280 + Math.random() * 180;
     const voice = audioCtx.createOscillator();
     const voiceGain = audioCtx.createGain();
     const filter = audioCtx.createBiquadFilter();
-
     voice.type = 'sine';
     voice.frequency.setValueAtTime(baseFreq, now);
-    voice.frequency.setValueAtTime(baseFreq * 1.15, now + duration * 0.3);
     voice.frequency.exponentialRampToValueAtTime(baseFreq * 0.85, now + duration);
-
-    // 颤音效果
-    const vibrato = audioCtx.createOscillator();
-    const vibratoGain = audioCtx.createGain();
-    vibrato.frequency.value = 5 + Math.random() * 3;
-    vibratoGain.gain.value = 15;
-    vibrato.connect(vibratoGain);
-    vibratoGain.connect(voice.frequency);
-    vibrato.start(now);
-    vibrato.stop(now + duration);
-
-    // 滤波器模拟口型
     filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(800, now);
-    filter.frequency.setValueAtTime(1200, now + duration * 0.4);
-    filter.frequency.setValueAtTime(600, now + duration);
+    filter.frequency.value = 1000;
     filter.Q.value = 2;
-
-    // 音量包络 - 喘息式
     voiceGain.gain.setValueAtTime(0.01, now);
-    voiceGain.gain.exponentialRampToValueAtTime(0.15, now + 0.05);
-    voiceGain.gain.setValueAtTime(0.12, now + duration * 0.5);
+    voiceGain.gain.exponentialRampToValueAtTime(0.12, now + 0.05);
     voiceGain.gain.exponentialRampToValueAtTime(0.01, now + duration);
-
     voice.connect(filter);
     filter.connect(voiceGain);
     voiceGain.connect(audioCtx.destination);
-
     voice.start(now);
     voice.stop(now + duration);
-
-    // 偶尔加重喘息
-    if (Math.random() > 0.6) {
-        setTimeout(() => {
-            if (!musicPlaying || !audioCtx) return;
-            const breath = audioCtx.createOscillator();
-            const breathGain = audioCtx.createGain();
-            const breathFilter = audioCtx.createBiquadFilter();
-
-            breath.type = 'sine';
-            breath.frequency.setValueAtTime(baseFreq * 1.3, audioCtx.currentTime);
-            breath.frequency.exponentialRampToValueAtTime(baseFreq * 0.9, audioCtx.currentTime + 0.3);
-
-            breathFilter.type = 'bandpass';
-            breathFilter.frequency.value = 1000;
-            breathFilter.Q.value = 1.5;
-
-            breathGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-            breathGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
-
-            breath.connect(breathFilter);
-            breathFilter.connect(breathGain);
-            breathGain.connect(audioCtx.destination);
-
-            breath.start();
-            breath.stop(audioCtx.currentTime + 0.3);
-        }, 150);
-    }
 }
 
 function startMusic() {
     if (musicPlaying) return;
-
     initAudioContext();
     musicPlaying = true;
     musicBtn.classList.add('playing');
-
-    // 节拍循环 - 600ms一拍，性感的慢节奏
     playBeat();
     beatInterval = setInterval(playBeat, 600);
-
-    // 呻吟声随机间隔
     function scheduleMoan() {
         if (!musicPlaying) return;
         playMoan();
@@ -933,160 +951,79 @@ function startMusic() {
 function stopMusic() {
     musicPlaying = false;
     musicBtn.classList.remove('playing');
-    if (beatInterval) {
-        clearInterval(beatInterval);
-        beatInterval = null;
-    }
-    if (moanInterval) {
-        clearTimeout(moanInterval);
-        moanInterval = null;
-    }
+    if (beatInterval) { clearInterval(beatInterval); beatInterval = null; }
+    if (moanInterval) { clearTimeout(moanInterval); moanInterval = null; }
 }
 
-musicBtn.addEventListener('click', () => {
-    if (musicPlaying) {
-        stopMusic();
-    } else {
-        startMusic();
-    }
-});
+musicBtn.addEventListener('click', () => musicPlaying ? stopMusic() : startMusic());
 
 // ==================== 核心功能 ====================
 function getRandomCommand() {
-    const pool = commands[gameMode];
+    const pool = commands[currentLang][gameMode];
     return pool[Math.floor(Math.random() * pool.length)];
 }
 
 function renderCard(data) {
-    currentCmd = data;
-
+    const t = i18n[currentLang];
     let bottomHtml = data.duration
-        ? `<div class="countdown"><div class="countdown-time" id="countdownTime">${data.duration}</div><div class="countdown-label">秒</div></div>`
-        : `<div class="countdown"><div class="countdown-label">完成后点击下一个</div></div>`;
+        ? `<div class="countdown"><div class="countdown-time" id="countdownTime">${data.duration}</div><div class="countdown-label">${t.seconds}</div></div>`
+        : `<div class="countdown"><div class="countdown-label">${t.clickNext}</div></div>`;
 
-    const poseHtml = data.pose && poseSVGs[data.pose]
-        ? `<div class="position-icon">${poseSVGs[data.pose]}</div>`
-        : '';
+    const poseHtml = data.pose && poseSVGs[data.pose] ? `<div class="position-icon">${poseSVGs[data.pose]}</div>` : '';
 
     cardFront.innerHTML = `
         <div class="intensity-strip" style="background: linear-gradient(90deg, ${levelColors[data.level]}, transparent)"></div>
         <div class="command-content">
-            <div class="command-level" style="color: ${levelColors[data.level]}; border-color: ${levelColors[data.level]}50">${levelNames[data.level]}</div>
+            <div class="command-level" style="color: ${levelColors[data.level]}; border-color: ${levelColors[data.level]}50">${t['level_' + data.level]}</div>
             ${poseHtml}
             <div class="command-text"><p>${data.cmd}</p></div>
         </div>
         ${bottomHtml}
     `;
 
-    if (data.duration) {
-        setTimeout(() => startCountdown(data.duration), 600);
-    }
+    if (data.duration) setTimeout(() => startCountdown(data.duration), 600);
 }
 
 function flipCard() {
-    if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-    }
-
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
     const data = getRandomCommand();
     renderCard(data);
-
-    if (!isFlipped) {
-        card.classList.add('flipped');
-        isFlipped = true;
-    } else {
-        card.classList.remove('flipped');
-        setTimeout(() => card.classList.add('flipped'), 50);
-    }
-
+    if (!isFlipped) { card.classList.add('flipped'); isFlipped = true; }
+    else { card.classList.remove('flipped'); setTimeout(() => card.classList.add('flipped'), 50); }
     triggerEffects(data.level);
 }
 
 function triggerEffects(level) {
-    // 背景热度
     const bgHeat = document.querySelector('.bg-heat');
-    const heatIntensity = 0.15 + level * 0.1;
-    bgHeat.style.background = `radial-gradient(ellipse at 50% 100%, rgba(255,20,20,${heatIntensity}) 0%, transparent 60%)`;
-
-    // 脉冲
+    bgHeat.style.background = `radial-gradient(ellipse at 50% 100%, rgba(255,20,20,${0.15 + level * 0.1}) 0%, transparent 60%)`;
     pulseBorder.classList.remove('active', 'intense');
     void pulseBorder.offsetWidth;
     pulseBorder.classList.add(level >= 4 ? 'intense' : 'active');
-
-    // 闪屏
     if (level >= 3) {
         flash.style.background = level >= 5 ? '#ff0000' : '#ff2020';
-        const flashCount = level >= 5 ? 2 : 1;
-        for (let i = 0; i < flashCount; i++) {
-            setTimeout(() => {
-                flash.classList.remove('fire');
-                void flash.offsetWidth;
-                flash.classList.add('fire');
-            }, i * 150);
-        }
-    }
-
-    // 震动动画
-    if (level >= 3) {
+        flash.classList.remove('fire'); void flash.offsetWidth; flash.classList.add('fire');
         document.body.classList.remove('shaking', 'shaking-hard');
-        const shakeClass = level >= 4 ? 'shaking-hard' : 'shaking';
-        document.body.classList.add(shakeClass);
-        setTimeout(() => document.body.classList.remove(shakeClass), level >= 4 ? 800 : 500);
+        document.body.classList.add(level >= 4 ? 'shaking-hard' : 'shaking');
+        setTimeout(() => document.body.classList.remove('shaking', 'shaking-hard'), level >= 4 ? 800 : 500);
     }
-
-    // 卡片发光
-    card.style.filter = `drop-shadow(0 0 ${level * 12}px rgba(255,45,85,${0.3 + level * 0.12}))`;
-    setTimeout(() => card.style.filter = '', 1200);
-
-    // 火焰粒子
     spawnFireParticles(level * 6, level);
-
-    // 设备振动
-    if (navigator.vibrate) {
-        const patterns = {
-            1: [40],
-            2: [60, 40, 60],
-            3: [100, 50, 100, 50, 100],
-            4: [150, 70, 150, 70, 150, 70, 150],
-            5: [250, 100, 250, 100, 400]
-        };
-        navigator.vibrate(patterns[level] || [40]);
-    }
+    if (navigator.vibrate) navigator.vibrate([40 * level]);
 }
 
 function spawnFireParticles(count, level) {
     const sizes = { 1: 5, 2: 8, 3: 12, 4: 16, 5: 22 };
-    const colors = [
-        'radial-gradient(circle, #ff8040, #ff4000)',
-        'radial-gradient(circle, #ff6030, #ff2000)',
-        'radial-gradient(circle, #ffaa00, #ff6000)',
-        'radial-gradient(circle, #ff3050, #cc0020)'
-    ];
-
     for (let i = 0; i < count; i++) {
         setTimeout(() => {
             const p = document.createElement('div');
             p.className = 'fire-particle';
             const size = sizes[level] + Math.random() * 8;
-            p.style.width = size + 'px';
-            p.style.height = size + 'px';
-            p.style.left = (10 + Math.random() * 80) + '%';
-            p.style.bottom = '12%';
-            p.style.background = colors[Math.floor(Math.random() * colors.length)];
-            p.style.boxShadow = `0 0 ${size}px rgba(255,100,0,0.6)`;
+            p.style.cssText = `width:${size}px;height:${size}px;left:${10+Math.random()*80}%;bottom:12%`;
             document.body.appendChild(p);
-
-            const distance = 100 + Math.random() * 120 + level * 25;
-            const duration = 550 + Math.random() * 400;
-            const drift = (Math.random() - 0.5) * 80;
-
             p.animate([
-                { transform: 'translateY(0) translateX(0) scale(1)', opacity: 1 },
-                { transform: `translateY(-${distance}px) translateX(${drift}px) scale(0)`, opacity: 0 }
-            ], { duration, easing: 'ease-out' });
-
-            setTimeout(() => p.remove(), duration);
+                { transform: 'translateY(0) scale(1)', opacity: 1 },
+                { transform: `translateY(-${100+Math.random()*100}px) scale(0)`, opacity: 0 }
+            ], { duration: 500 + Math.random() * 400, easing: 'ease-out' });
+            setTimeout(() => p.remove(), 900);
         }, i * 35);
     }
 }
@@ -1095,33 +1032,19 @@ function startCountdown(seconds) {
     let remaining = seconds;
     const timeDisplay = document.getElementById('countdownTime');
     if (!timeDisplay) return;
-
+    const t = i18n[currentLang];
     timerInterval = setInterval(() => {
         remaining--;
-        if (remaining >= 60) {
-            const m = Math.floor(remaining / 60);
-            const s = remaining % 60;
-            timeDisplay.textContent = `${m}:${s.toString().padStart(2, '0')}`;
-        } else {
-            timeDisplay.textContent = remaining;
-        }
-
+        timeDisplay.textContent = remaining >= 60 ? `${Math.floor(remaining/60)}:${(remaining%60).toString().padStart(2,'0')}` : remaining;
         if (remaining <= 10 && remaining > 0) {
             timeDisplay.classList.add('urgent');
-            if (navigator.vibrate) navigator.vibrate([40, 25]);
-            pulseBorder.classList.remove('active');
-            void pulseBorder.offsetWidth;
-            pulseBorder.classList.add('active');
+            if (navigator.vibrate) navigator.vibrate([40]);
         }
-
         if (remaining <= 0) {
-            clearInterval(timerInterval);
-            timerInterval = null;
+            clearInterval(timerInterval); timerInterval = null;
             timeDisplay.classList.remove('urgent');
-            timeDisplay.textContent = '完成';
-            timeDisplay.style.fontSize = '1.8rem';
+            timeDisplay.textContent = t.done;
             triggerEffects(5);
-            if (navigator.vibrate) navigator.vibrate([150, 80, 150, 80, 300]);
         }
     }, 1000);
 }
@@ -1137,65 +1060,18 @@ document.getElementById('settingsClose').addEventListener('click', () => setting
 document.getElementById('modeCards').addEventListener('click', (e) => {
     const modeCard = e.target.closest('.mode-card');
     if (!modeCard) return;
-
     document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('active'));
     modeCard.classList.add('active');
     gameMode = modeCard.dataset.mode;
-    modeBadge.textContent = modeNames[gameMode];
+    modeBadge.textContent = i18n[currentLang]['mode_' + gameMode];
     settingsPanel.classList.remove('open');
-
-    if (navigator.vibrate) navigator.vibrate([40, 25, 40]);
 });
 
-// ==================== 声音检测（自动开启） ====================
-let audioContext, analyser, lastTrigger = 0;
+// 第一次点击启动音乐
+card.addEventListener('click', () => { if (!musicPlaying) startMusic(); }, { once: true });
 
-async function initAudio() {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = audioContext.createAnalyser();
-        const mic = audioContext.createMediaStreamSource(stream);
-        mic.connect(analyser);
-        analyser.fftSize = 256;
-        dbMeter.classList.add('active');
-        monitorAudio();
-    } catch (e) {
-        console.log('麦克风未授权');
-    }
-}
-
-function monitorAudio() {
-    if (!analyser) return;
-    const data = new Uint8Array(analyser.frequencyBinCount);
-    analyser.getByteFrequencyData(data);
-    const avg = data.reduce((a, b) => a + b, 0) / data.length;
-
-    dbFill.style.height = Math.min(100, avg / 128 * 100) + '%';
-
-    const now = Date.now();
-    if (avg > 50 && now - lastTrigger > 400) {
-        lastTrigger = now;
-        const intensity = Math.min(5, Math.floor(avg / 25));
-        spawnFireParticles(Math.floor(avg / 10), intensity);
-        if (navigator.vibrate) navigator.vibrate(Math.floor(avg));
-    }
-
-    requestAnimationFrame(monitorAudio);
-}
-
-// 第一次点击时启动音频和音乐
-card.addEventListener('click', () => {
-    if (!audioContext) initAudio();
-    if (!musicPlaying) startMusic(); // 默认开启音乐
-}, { once: true });
-
-// 心跳振动
-if (navigator.vibrate) {
-    setInterval(() => {
-        if (isFlipped) navigator.vibrate([50, 120, 50]);
-    }, 1200);
-}
+// 初始化UI
+updateUI();
 </script>
 </body>
 </html>
